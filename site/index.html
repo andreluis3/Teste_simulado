@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado Oficial de Administração - Padrão IBAM Santos</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --primary: #1e3a8a;
+    --primary-light: #3b82f6;
+    --secondary: #0f172a;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #334155;
+    --border: #cbd5e1;
+    --success: #16a34a;
+    --danger: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { background: var(--bg); color: var(--text); padding-bottom: 60px; }
+  header { position: sticky; top: 0; z-index: 100; background: var(--card); border-bottom: 2px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+  .timer-box { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.25rem; color: var(--primary); }
+  .timer-box.warning { color: var(--danger); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+  .text-box { background: #f1f5f9; border-left: 4px solid var(--primary-light); padding: 16px; border-radius: 4px; margin-bottom: 24px; line-height: 1.6; font-size: 0.95rem; }
+  .question-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .discipline-tag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; background: #e0e7ff; color: var(--primary); }
+  .question-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+  .options-group { display: flex; flex-direction: column; gap: 10px; }
+  .option-label { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 0.95rem; }
+  .option-label:hover { background: #f8fafc; border-color: var(--primary-light); }
+  .option-label input { width: 18px; height: 18px; accent-color: var(--primary); }
+  .submit-btn { display: block; width: 100%; max-width: 320px; margin: 30px auto; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.2s; text-align: center; }
+  .submit-btn:hover { background: #1e40af; }
+  #results-container { display: none; margin-top: 24px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+  .stat-card .value { font-size: 2rem; font-weight: 800; color: var(--primary); margin-top: 6px; }
+  .chart-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 24px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .explanation { margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 0.9rem; line-height: 1.5; display: none; }
+  .option-label.correct { background: #dcfce7 !important; border-color: var(--success) !important; color: #14532d; font-weight: 600; }
+  .option-label.wrong { background: #fee2e2 !important; border-color: var(--danger) !important; color: #7f1d1d; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1 style="font-size: 1.1rem; color: var(--secondary);">Simulado Oficial de Administração</h1>
+    <span style="font-size: 0.8rem; color: #64748b;">Padrão Técnico IBAM Santos (40 Questões)</span>
+  </div>
+  <div class="timer-box" id="timer">03:30:00</div>
+</header>
+
+<div class="container">
+  <div id="quiz-container">
+    <div class="text-box">
+      <strong>Texto de Apoio para as Questões 01 a 10:</strong><br><br>
+      A modernização da máquina pública não se resume à mera substituição de formulários de papel por arquivos digitais. Trata-se, essencialmente, de uma transformação profunda na relação de poder entre o Estado e a sociedade civil. Historicamente, a burocracia estatal brasileira estruturou-se sob a premissa da desconfiança prévia: ao cidadão sempre coube o ônus de provar sua boa-fé diante de guichês de atendimento, acumulando certidões negativas, firmas reconhecidas e cópias autenticadas.<br><br>
+      Contudo, quando a administração pública submete o administrado a exigências redundantes, ela está confiscando o tempo do indivíduo. E o tempo, ao contrário de tributos e taxas, é um recurso absolutamente irrecuperável. A eficiência administrativa impõe que os órgãos públicos atuem de maneira célere e desburocratizada. Exigir do cidadão certidões que a própria municipalidade já possui em seus bancos de dados não é zelo processual: é ineficiência institucionalizada.<br><br>
+      A superação desse modelo passa pelo compartilhamento interno de informações. Não obstante os avanços pontuais, resiste em muitas repartições a mentalidade corporativa que enxerga o controle formal como um fim em si mesmo. Enquanto a tramitação for guiada pelo apego ao rito e não pela efetividade da entrega, o serviço público continuará distante de sua missão precípua de servir à coletividade.
+    </div>
+
+    <div id="questions-list"></div>
+    <button class="submit-btn" onclick="finishQuiz()">Finalizar e Corrigir Prova</button>
+  </div>
+
+  <div id="results-container">
+    <h2 style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;">Resultado e Diagnóstico da Prova</h2>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div>Pontuação Total</div>
+        <div class="value" id="final-score">0 / 100</div>
+      </div>
+      <div class="stat-card">
+        <div>Acertos Totais</div>
+        <div class="value" id="final-hits">0 / 40</div>
+      </div>
+      <div class="stat-card">
+        <div>Aproveitamento Geral</div>
+        <div class="value" id="final-percent">0%</div>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <canvas id="performanceChart"></canvas>
+    </div>
+
+    <h3 style="margin-bottom: 16px;">Gabarito Comentado e Análise de Questões</h3>
+    <div id="review-list"></div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  // 01 a 10: Português
+  {
+    disc: "Língua Portuguesa",
+    q: "01. De acordo com o texto, a burocracia estatal brasileira estruturou-se historicamente sob:",
+    opts: ["A) O compromisso de garantir agilidade procedimental na validação de dados.", "B) A premissa de desconfiança prévia em relação à conduta e boa-fé do cidadão.", "C) O rigor voltado à preservação do tempo útil dos administrados.", "D) A substituição automática de formulários por processos plenamente integrados."],
+    ans: 1,
+    exp: "Gabarito: B. O texto explicita no primeiro parágrafo: 'a burocracia estatal brasileira estruturou-se sob a premissa da desconfiança prévia: ao cidadão sempre coube o ônus de provar sua boa-fé'."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "02. No segmento 'ao cidadão sempre coube o ônus de provar sua boa-fé', o termo destacado 'o ônus' exerce a função de:",
+    opts: ["A) Objeto direto do verbo caber.", "B) Sujeito do verbo caber.", "C) Complemento nominal de cidadão.", "D) Predicativo do sujeito."],
+    ans: 1,
+    exp: "Gabarito: B. O verbo 'caber' rege preposição 'a' para indicar quem recebe ('ao cidadão' = objeto indireto) e aquilo que cabe funciona como sujeito oracional: 'O ônus coube ao cidadão'."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "03. Na frase 'quando a administração pública submete o administrado a exigências redundantes', o verbo destacado apresenta a mesma transitividade observada em:",
+    opts: ["A) A diretoria comunicou a nova diretriz a todos os servidores.", "B) O candidato aspirava ao cargo de oficial administrativo.", "C) A equipe compareceu à solenidade de abertura.", "D) Os fiscais obedeceram prontamente às normas da portaria."],
+    ans: 0,
+    exp: "Gabarito: A. 'Submeter' é transitivo direto e indireto (submeter alguém a algo). 'Comunicar' também é VTDI (comunicou algo [a diretriz] a alguém [aos servidores]). As demais são VTI ou VI."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "04. Avalie as afirmativas sobre acentuação gráfica:<br>I. 'indivíduo' é acentuada por ser paroxítona terminada em ditongo crescente.<br>II. 'país' e 'juízo' recebem acento pela regra dos hiatos tônicos.<br>III. 'estatal' e 'poder' são oxítonas que exigem acento diferencial opcional.<br>Está correto o que se afirma em:",
+    opts: ["A) I e II, apenas.", "B) II e III, apenas.", "C) I e III, apenas.", "D) I, II e III."],
+    ans: 0,
+    exp: "Gabarito: A. O item III é falso: palavras oxítonas terminadas em -al e -er não são acentuadas graficamente no português padrão."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "05. Assinale a frase em que o uso do acento indicativo de crase é estritamente obrigatório:",
+    opts: ["A) A prefeitura começou à publicar as novas diretrizes de atendimento.", "B) O funcionário dirigiu-se à secretaria central para arquivar o processo.", "C) O formulário foi enviado à uma comissão especial de sindicância.", "D) As exigências visavam atender à demandas de diversos setores."],
+    ans: 1,
+    exp: "Gabarito: B. Quem se dirige, dirige-se 'a' (preposição) + 'a' (artigo feminino de secretaria). Em A há verbo (proibida), em C há artigo indefinido 'uma' (proibida), e em D 'demandas' está no plural sem o artigo 'às' (a + plural = sem crase)."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "06. No trecho 'Exigir do cidadão documentos que a própria municipalidade já possui', o vocábulo 'que' classifica-se como:",
+    opts: ["A) Conjunção integrante introduzindo oração subordinada substantiva.", "B) Pronome relativo exercendo a função sintática de objeto direto.", "C) Conjunção explicativa justificando a oração anterior.", "D) Pronome relativo exercendo a função de sujeito."],
+    ans: 1,
+    exp: "Gabarito: B. O termo retoma 'documentos' (pronome relativo). Na oração adjetiva: 'a municipalidade possui [os documentos / que]' -> objeto direto do verbo possuir."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "07. No período 'Não obstante os avanços pontuais, resiste a mentalidade corporativa', o conectivo destacado exprime ideia de:",
+    opts: ["A) Concessão, sendo equivalente a 'Apesar de'.", "B) Consequência, equivalendo a 'Portanto'.", "C) Causa, equivalendo a 'Visto que'.", "D) Proporção, equivalendo a 'À medida que'."],
+    ans: 0,
+    exp: "Gabarito: A. 'Não obstante' é conectivo de valor concessivo (oposição que não anula a oração principal), sinônimo perfeito de 'apesar de' ou 'embora'."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "08. Considere a oração: 'Constatou-se que haviam falhas graves e faziam dez anos que o setor não recebia melhorias.' Quanto à concordância verbal:",
+    opts: ["A) Está plenamente correta na norma-padrão.", "B) Apresenta erro apenas no emprego do verbo 'haviam'.", "C) Apresenta erro apenas no emprego do verbo 'faziam'.", "D) Apresenta erro em ambos os verbos, devendo ser 'havia' e 'fazia'."],
+    ans: 3,
+    exp: "Gabarito: D. Tanto 'haver' (no sentido de existir) quanto 'fazer' (indicando tempo decorrido) são verbos impessoais, que não têm sujeito e devem obrigatoriamente permanecer na 3ª pessoa do singular: 'havia falhas' e 'fazia dez anos'."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "09. Em relação ao emprego da pontuação, assinale a afirmativa correta:",
+    opts: ["A) A vírgula após 'Contudo' no segundo parágrafo é incorreta por separar o conectivo do predicado.", "B) No primeiro parágrafo, os dois-pontos introduzem um esclarecimento a respeito da desconfiança prévia.", "C) O isolamento de orações subordinadas adjetivas restritivas por vírgula é obrigatório.", "D) A pontuação de orações intercaladas longas deve ser feita exclusivamente com reticências."],
+    ans: 1,
+    exp: "Gabarito: B. Os dois-pontos foram utilizados para abrir uma oração que explicita e detalha o que consiste a 'premissa da desconfiança prévia'."
+  },
+  {
+    disc: "Língua Portuguesa",
+    q: "10. No fragmento 'o serviço público continuará distante de sua missão precípua de servir à coletividade', o vocábulo 'precípua' significa:",
+    opts: ["A) Acessória.", "B) Essencial, principal.", "C) Opcional.", "D) Complexa."],
+    ans: 1,
+    exp: "Gabarito: B. 'Precípua' tem sentido de fundamental, básica, prioritária ou principal missão."
+  },
+
+  // 11 a 20: Matemática Aplicada
+  {
+    disc: "Matemática Aplicada",
+    q: "11. Em uma repartição, 6 funcionários, trabalhando 8 horas por dia, analisam 360 processos em 5 dias. Quantos funcionários com a mesma capacidade de trabalho serão necessários para analisar 540 processos em 6 dias, trabalhando apenas 6 horas por dia?",
+    opts: ["A) 8 funcionários.", "B) 10 funcionários.", "C) 12 funcionários.", "D) 15 funcionários."],
+    ans: 1,
+    exp: "Gabarito: B. Regra de três composta: Funcionários (F), Horas/dia (H), Processos (P), Dias (D). Montando a proporção de F em relação às outras grandezas: F = 6 * (540/360) * (5/6) * (8/6). F = 6 * (1,5) * (0,8333) * (1,3333) = 10 funcionários."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "12. Um cidadão pagou uma taxa municipal com atraso. O valor original era de R$ 450,00, mas sofreu uma multa fixa de 4% mais juros de mora de R$ 18,00. Qual foi o valor total pago?",
+    opts: ["A) R$ 468,00.", "B) R$ 486,00.", "C) R$ 492,00.", "D) R$ 504,00."],
+    ans: 1,
+    exp: "Gabarito: B. Multa fixa: 4% de 450 = 0,04 * 450 = R$ 18,00. Juros de mora = R$ 18,00. Total de acréscimo = 18 + 18 = R$ 36,00. Valor pago: 450 + 36 = R$ 486,00."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "13. Um reservatório cúbico de água de uma escola pública tem 2 metros de aresta interna. Se a escola consome 80% do volume total desse reservatório em uma semana, quantos litros de água foram consumidos?",
+    opts: ["A) 6.400 litros.", "B) 8.000 litros.", "C) 1.600 litros.", "D) 4.800 litros."],
+    ans: 0,
+    exp: "Gabarito: A. Volume do cubo = aresta³ = 2 * 2 * 2 = 8 m³. Como 1 m³ = 1.000 litros, o total é 8.000 litros. Consumo de 80%: 0,80 * 8.000 = 6.400 litros."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "14. A prefeitura investiu uma verba de R$ 40.000,00 em uma aplicação financeira remunerada a juros simples com taxa de 1,2% ao mês durante 15 meses. Ao final do período, o montante total resgatado foi de:",
+    opts: ["A) R$ 46.200,00.", "B) R$ 47.200,00.", "C) R$ 48.000,00.", "D) R$ 49.600,00."],
+    ans: 1,
+    exp: "Gabarito: B. Juros simples: J = C * i * t = 40.000 * 0,012 * 15 = R$ 7.200,00. Montante = Capital + Juros = 40.000 + 7.200 = R$ 47.200,00."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "15. Uma sala de arquivo retangular tem 12 metros de comprimento e 8 metros de largura. Deseja-se colocar um carpete em 75% da área total do piso. Qual é a área da sala que ficará sem carpete?",
+    opts: ["A) 24 m².", "B) 36 m².", "C) 48 m².", "D) 72 m²."],
+    ans: 0,
+    exp: "Gabarito: A. Área total = 12 * 8 = 96 m². Se 75% receberá carpete, a fração sem carpete é de 25% (100% - 75%). Área sem carpete = 0,25 * 96 = 24 m²."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "16. A razão entre o número de processos físicos e processos digitais arquivados em determinado setor é de 3 para 5. Sabendo que o setor possui um total de 480 processos, a quantidade de processos digitais supera a de físicos em:",
+    opts: ["A) 60 processos.", "B) 80 processos.", "C) 120 processos.", "D) 150 processos."],
+    ans: 2,
+    exp: "Gabarito: C. Proporção: 3 partes + 5 partes = 8 partes. Valor de cada parte = 480 / 8 = 60. Processos físicos = 3 * 60 = 180. Processos digitais = 5 * 60 = 300. Diferença = 300 - 180 = 120 processos."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "17. Uma impressora departamental consome 1 resma de papel (500 folhas) a cada 4 dias úteis de trabalho constante. Mantido esse mesmo ritmo médio de impressão, quantas folhas serão utilizadas ao longo de 18 dias úteis?",
+    opts: ["A) 2.000 folhas.", "B) 2.250 folhas.", "C) 2.500 folhas.", "D) 2.750 folhas."],
+    ans: 1,
+    exp: "Gabarito: B. Consumo diário = 500 folhas / 4 dias = 125 folhas por dia útil. Em 18 dias úteis: 18 * 125 = 2.250 folhas."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "18. Para cercar um pátio circular da sede municipal com raio de 25 metros com 3 voltas completas de fita zebrada (considere pi = 3,14), a quantidade mínima de fita necessária é de:",
+    opts: ["A) 157 metros.", "B) 314 metros.", "C) 471 metros.", "D) 628 metros."],
+    ans: 2,
+    exp: "Gabarito: C. Perímetro da circunferência = 2 * pi * raio = 2 * 3,14 * 25 = 157 metros por volta. Para 3 voltas completas: 3 * 157 = 471 metros."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "19. Em um setor administrativo, 40% dos funcionários são homens e as restantes 18 colaboradoras são mulheres. Qual é o quadro total de funcionários do setor?",
+    opts: ["A) 25 funcionários.", "B) 30 funcionários.", "C) 32 funcionários.", "D) 35 funcionários."],
+    ans: 1,
+    exp: "Gabarito: B. Se 40% são homens, 60% são mulheres. Logo, 60% (0,60) do total equivale a 18. Total = 18 / 0,60 = 30 funcionários."
+  },
+  {
+    disc: "Matemática Aplicada",
+    q: "20. Uma caixa de arquivo morto com formato de paralelepípedo reto-retângulo tem 40 cm de comprimento, 30 cm de largura e 25 cm de altura. Seu volume total em decímetros cúbicos (dm³) é igual a:",
+    opts: ["A) 30 dm³.", "B) 300 dm³.", "C) 3.000 dm³.", "D) 0,3 dm³."],
+    ans: 0,
+    exp: "Gabarito: A. Transformando as medidas em decímetros (1 dm = 10 cm): 4 dm * 3 dm * 2,5 dm = 30 dm³ (lembrando que 1 dm³ = 1 litro)."
+  },
+
+  // 21 a 30: Conhecimentos Específicos
+  {
+    disc: "Conhecimentos Específicos",
+    q: "21. A respeito da teoria das três idades na Arquivologia, classifique os itens em (V) para Verdadeiro ou (F) para Falso:<br>( ) O arquivo corrente é composto por documentos de uso frequente e valor primário.<br>( ) O arquivo intermediário reúne documentos de guarda definitiva e valor histórico.<br>( ) O arquivo permanente não permite descarte, sendo seus documentos inalienáveis.<br>( ) A transferência é a passagem do arquivo intermediário para o arquivo permanente.<br>A sequência correta é:",
+    opts: ["A) V - F - V - F", "B) V - V - F - F", "C) F - F - V - V", "D) V - F - V - V"],
+    ans: 0,
+    exp: "Gabarito: A. A 2ª é falsa (intermediário aguarda destinação final, não é definitivo). A 4ª é falsa: a passagem do intermediário para o permanente chama-se recolhimento (transferência é da 1ª para a 2ª idade)."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "22. O setor de protocolo é uma das engrenagens centrais da gestão de documentos públicos. São etapas típicas executadas pelo setor de protocolo, EXCETO:",
+    opts: ["A) Recebimento e conferência de correspondências e documentos.", "B) Autuação, registro e distribuição aos setores destinatários.", "C) Eliminação sumária de processos que contenham erros de digitação.", "D) Controle de tramitação e expedição de correspondências oficiais."],
+    ans: 2,
+    exp: "Gabarito: C. O setor de protocolo não tem competência para eliminar sumariamente processos por erro formal; o descarte exige tabela de temporalidade e comissão de avaliação."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "23. De acordo com o Manual de Redação da Presidência da República, o princípio da impessoalidade no texto oficial exige:",
+    opts: ["A) A ausência de identificação do signatário ao final do ofício.", "B) A não manifestação de opiniões e impressões subjetivas do redator.", "C) O emprego obrigatório de linguagem técnica de difícil compreensão.", "D) O uso frequente da primeira pessoa do singular para firmar autoridade."],
+    ans: 1,
+    exp: "Gabarito: B. A impessoalidade veda traços personalistas, opiniões subjetivas e juízos particulares, refletindo o caráter institucional da Administração Pública."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "24. Nos fechos para correspondências oficiais, o Manual de Redação da Presidência da República determina o emprego do termo 'Respeitosamente' para:",
+    opts: ["A) Autoridades de mesma hierarquia ou de hierarquia inferior.", "B) Cidadãos em geral e entidades privadas.", "C) Autoridades hierarquicamente superiores àquela que subscreve o documento.", "D) Qualquer comunicação oficial, independentemente do nível das autoridades."],
+    ans: 2,
+    exp: "Gabarito: C. São apenas dois fechos oficiais: 'Respeitosamente' (para autoridades superiores) e 'Atenciosamente' (para autoridades de mesma hierarquia ou inferior)."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "25. No atendimento ao público no setor governamental, a prática da escuta ativa consiste em:",
+    opts: ["A) Interromper imediatamente o cidadão para apontar que seu pedido está incompleto.", "B) Ouvir com atenção plena, buscando compreender a real necessidade antes de apresentar a solução técnica adequada.", "C) Limitar-se a responder as perguntas de forma monossilábica para acelerar a fila.", "D) Encaminhar o munícipe a outro guichê sempre que a demanda exigir mais de dois minutos."],
+    ans: 1,
+    exp: "Gabarito: B. Escuta ativa é técnica de comunicação em que o atendente demonstra atenção, processa o que o interlocutor demanda e orienta com empatia e clareza."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "26. No método de arquivamento alfabético, a regra primordial de alfabetação para nomes de pessoas físicas orienta que:",
+    opts: ["A) Arquiva-se pelo primeiro nome, independentemente do sobrenome.", "B) O último sobrenome é considerado como palavra de entrada (primeiro elemento).", "C) Os títulos e graus de parentesco sempre iniciam a busca de arquivo.", "D) O nome do meio é a chave de ordenação primária."],
+    ans: 1,
+    exp: "Gabarito: B. Nas regras de alfabetação, pessoas físicas são organizadas pelo último sobrenome e depois o prenome: Ex.: SILVA, João da."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "27. No ambiente Windows 10/11, o atalho de teclado que permite ao usuário alternar rapidamente entre janelas e aplicativos abertos é:",
+    opts: ["A) Ctrl + P", "B) Alt + Tab", "C) Windows + L", "D) Ctrl + Shift + Esc"],
+    ans: 1,
+    exp: "Gabarito: B. O atalho universal para alternar entre janelas em execução no Windows é 'Alt + Tab' (Windows + L bloqueia a máquina e Ctrl + P imprime)."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "28. No Microsoft Word, a funcionalidade 'Quebra de Seção' é utilizada fundamentalmente para:",
+    opts: ["A) Alterar a cor da fonte em partes específicas do parágrafo.", "B) Permitir formatações distintas dentro de um mesmo documento (ex.: cabeçalhos diferentes ou orientação de página mista retrato/paisagem).", "C) Corrigir automaticamente erros de pontuação e concordância verbal.", "D) Inserir notas de rodapé de forma sequencial e ininterrupta."],
+    ans: 1,
+    exp: "Gabarito: B. A quebra de seção divide o documento em módulos independentes, permitindo diferentes margens, números de página e layouts (paisagem/retrato) no mesmo arquivo."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "29. No Microsoft Excel, se a célula A1 contém 15, A2 contém 25 e A3 contém 10, a fórmula '=SE(SOMA(A1:A3)>40; MÉDIA(A1:A3); 0)' retornará:",
+    opts: ["A) 50", "B) 0", "C) 16,67", "D) 40"],
+    ans: 2,
+    exp: "Gabarito: C. A soma de A1 até A3 é 15 + 25 + 10 = 50. Como 50 > 40, a condição do SE é verdadeira. O cálculo executado é a média: 50 / 3 = 16,666... (16,67)."
+  },
+  {
+    disc: "Conhecimentos Específicos",
+    q: "30. Sobre a segurança da informação nas rotinas públicas, a garantia de que uma informação só estará acessível a pessoas expressamente autorizadas corresponde ao pilar da:",
+    opts: ["A) Integridade.", "B) Confidencialidade.", "C) Disponibilidade.", "D) Autenticidade."],
+    ans: 1,
+    exp: "Gabarito: B. Confidencialidade assegura o sigilo contra acessos não autorizados; Integridade assegura que os dados não foram modificados; Disponibilidade assegura o acesso quando necessário."
+  },
+
+  // 31 a 40: Legislação Municipal de Santos
+  {
+    disc: "Legislação de Santos",
+    q: "31. Conforme a Lei Orgânica do Município de Santos, a soberania popular no âmbito municipal é exercida pelo sufrágio universal e pelo voto direto e secreto, mediante:",
+    opts: ["A) Plebiscito, referendo e iniciativa popular de projetos de lei.", "B) Indicação vinculante dos partidos políticos com representação na Câmara.", "C) Consulta pública restrita a servidores de carreira.", "D) Escolha indireta dos membros do Conselho Municipal de Gestão."],
+    ans: 0,
+    exp: "Gabarito: A. A Lei Orgânica de Santos reproduz o modelo constitucional: a soberania popular é exercida pelo voto direto e pelos instrumentos de plebiscito, referendo e iniciativa popular."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "32. De acordo com o Estatuto dos Funcionários Públicos de Santos (Lei nº 4.623/84), o ato formal pelo qual a autoridade competente atribui e investe o cidadão no exercício de um cargo público denomina-se:",
+    opts: ["A) Nomeação.", "B) Posse.", "C) Lotação.", "D) Exercício."],
+    ans: 1,
+    exp: "Gabarito: B. A posse é o ato formal de investidura no cargo público, mediante a aceitação dos deveres e responsabilidades (a nomeação é ato de provimento e o exercício é o efetivo desempenho)."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "33. Conforme a Lei nº 4.623/84 de Santos, o estágio probatório do servidor nomeado para cargo de provimento efetivo compreende a avaliação de fatores, DENTRE OS QUAIS NÃO SE INCLUI:",
+    opts: ["A) Idoneidade moral e disciplina.", "B) Assiduidade e pontualidade.", "C) Eficiência e aptidão.", "D) Vinculação político-partidária."],
+    ans: 3,
+    exp: "Gabarito: D. A avaliação de estágio probatório apura requisitos estritamente funcionais (assiduidade, pontualidade, disciplina, eficiência e capacidade), sendo vedada discriminação política."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "34. Nos termos da legislação municipal de Santos, a vacância de cargo público decorre, entre outras hipóteses, de:",
+    opts: ["A) Readaptação, posse em outro cargo inacumulável e exoneração.", "B) Licença-prêmio e férias regulamentares.", "C) Designação para função de confiança.", "D) Afastamento para estudo sem remuneração."],
+    ans: 0,
+    exp: "Gabarito: A. A vacância (abertura de vaga) decorre de exoneração, demissão, aposentadoria, posse em outro cargo inacumulável, falecimento e readaptação. Férias e licenças geram apenas afastamento transitório."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "35. Segundo o Estatuto dos Funcionários de Santos, a pena disciplinar de demissão é aplicada em casos gravíssimos devidamente apurados em processo administrativo disciplinar, como:",
+    opts: ["A) Descumprimento de meta semanal pontual de atendimento.", "B) Prática de crime contra a administração pública e incontinência pública escandalosa.", "C) Discordância formal sobre metodologia de arquivo adotada pela chefia.", "D) Atraso justificado inferior a 15 minutos em dias de chuva."],
+    ans: 1,
+    exp: "Gabarito: B. A demissão é a sanção expulsiva extrema do servidor, cabível em casos como crimes funcionais, lesão aos cofres públicos, corrupção e conduta escandalosa reiterada na repartição."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "36. Na Lei Orgânica de Santos, a competência para legislar sobre tributos municipais e autorizar a alienação de bens imóveis da prefeitura pertence à:",
+    opts: ["A) Secretaria Municipal de Assuntos Jurídicos, por ato discricionário.", "B) Câmara Municipal, com a sanção do Prefeito.", "C) Procuradoria-Geral do Município, por meio de parecer.", "D) Defensoria Pública Municipal."],
+    ans: 1,
+    exp: "Gabarito: B. Trata-se de competência típica do Poder Legislativo Municipal (Câmara de Santos), cabendo ao Prefeito a sanção ou o veto nos termos legais."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "37. O servidor público municipal de Santos que, sem justificativa legal, faltar sucessivamente ao trabalho por período continuado pode ser penalizado por abandono de cargo. De acordo com o Estatuto, considera-se abandono de cargo a ausência intencional por mais de:",
+    opts: ["A) 15 dias consecutivos.", "B) 30 dias consecutivos.", "C) 60 dias intercalados.", "D) 45 dias consecutivos."],
+    ans: 1,
+    exp: "Gabarito: B. O abandono de cargo configura-se pela ausência intencional e sem justificativa por mais de 30 (trinta) dias consecutivos."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "38. De acordo com a Lei Orgânica de Santos, os atos administrativos de competência do Prefeito que criem obrigações ou afetem direitos dos munícipes deverão ser:",
+    opts: ["A) Publicados obrigatoriamente no órgão oficial de imprensa do Município para que tenham eficácia.", "B) Enviados exclusivamente por correspondência postal com aviso de recebimento a cada munícipe.", "C) Mantidos sob reserva processual por 5 anos.", "D) Arquivados apenas na biblioteca municipal."],
+    ans: 0,
+    exp: "Gabarito: A. Pelo princípio da publicidade (art. 37 da CF e Lei Orgânica), a eficácia dos atos administrativos normativos e de efeitos externos depende de sua publicação no Diário Oficial de Santos."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "39. Pelo Estatuto dos Servidores de Santos, a reintegração é a reinvestidura do funcionário no cargo anteriormente ocupado decorrente de:",
+    opts: ["A) Pedido de transferência por conveniência particular da chefia.", "B) Decisão judicial transitada em julgado ou decisão administrativa que anule a demissão.", "C) Aprovação em novo concurso para a mesma pasta.", "D) Conclusão satisfatória de período de licença para assuntos particulares."],
+    ans: 1,
+    exp: "Gabarito: B. Reintegração é a anulação legal da demissão injusta (por via administrativa ou judicial), restabelecendo o servidor em seu cargo com ressarcimento de todos os prejuízos."
+  },
+  {
+    disc: "Legislação de Santos",
+    q: "40. Nos termos do regime disciplinar previsto no Estatuto de Santos, a aplicação de qualquer penalidade ao funcionário público deve observar obrigatoriamente:",
+    opts: ["A) A oportunidade prévia de ampla defesa e do contraditório.", "B) A decisão sumária da chefia imediata sem recurso.", "C) A exoneração preventiva imediata durante a fase de apuração preliminar.", "D) O julgamento exclusivo por votação entre os colegas do setor."],
+    ans: 0,
+    exp: "Gabarito: A. Nenhuma penalidade disciplinar pode ser imposta sem a estrita observância das garantias constitucionais do devido processo legal, do contraditório e da ampla defesa."
+  }
+];
+
+// Carregar Questões na Tela
+const listContainer = document.getElementById("questions-list");
+questions.forEach((item, index) => {
+  const card = document.createElement("div");
+  card.className = "question-card";
+  card.id = `card-${index}`;
+
+  let optsHtml = "";
+  item.opts.forEach((opt, oIndex) => {
+    optsHtml += `
+      <label class="option-label" id="label-${index}-${oIndex}">
+        <input type="radio" name="q${index}" value="${oIndex}">
+        ${opt}
+      </label>
+    `;
+  });
+
+  card.innerHTML = `
+    <span class="discipline-tag">${item.disc}</span>
+    <div class="question-title">${item.q}</div>
+    <div class="options-group">${optsHtml}</div>
+    <div class="explanation" id="exp-${index}">${item.exp}</div>
+  `;
+  listContainer.appendChild(card);
+});
+
+// Cronômetro (3h30 = 12600 segundos)
+let timeLeft = 3 * 3600 + 30 * 60;
+const timerEl = document.getElementById("timer");
+const timerInterval = setInterval(() => {
+  timeLeft--;
+  let h = Math.floor(timeLeft / 3600);
+  let m = Math.floor((timeLeft % 3600) / 60);
+  let s = timeLeft % 60;
+  timerEl.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  
+  if (timeLeft <= 900) timerEl.classList.add("warning"); // últimos 15 min
+  if (timeLeft <= 0) {
+    clearInterval(timerInterval);
+    alert("Tempo esgotado! A prova será finalizada e corrigida automaticamente.");
+    finishQuiz();
+  }
+}, 1000);
+
+// Finalização e Análise
+function finishQuiz() {
+  clearInterval(timerInterval);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  let hits = 0;
+  let discHits = { "Língua Portuguesa": 0, "Matemática Aplicada": 0, "Conhecimentos Específicos": 0, "Legislação de Santos": 0 };
+  let discTotal = { "Língua Portuguesa": 10, "Matemática Aplicada": 10, "Conhecimentos Específicos": 10, "Legislação de Santos": 10 };
+
+  questions.forEach((item, index) => {
+    const selected = document.querySelector(`input[name="q${index}"]:checked`);
+    const expDiv = document.getElementById(`exp-${index}`);
+    expDiv.style.display = "block";
+
+    const correctLabel = document.getElementById(`label-${index}-${item.ans}`);
+    correctLabel.classList.add("correct");
+
+    if (selected) {
+      const val = parseInt(selected.value);
+      if (val === item.ans) {
+        hits++;
+        discHits[item.disc]++;
+        expDiv.style.background = "#dcfce7";
+        expDiv.style.color = "#166534";
+      } else {
+        const wrongLabel = document.getElementById(`label-${index}-${val}`);
+        wrongLabel.classList.add("wrong");
+        expDiv.style.background = "#fee2e2";
+        expDiv.style.color = "#991b1b";
+      }
+    } else {
+      expDiv.style.background = "#fef3c7";
+      expDiv.style.color = "#92400e";
+      expDiv.innerHTML += " <br><strong>[Questão deixada em branco]</strong>";
+    }
+  });
+
+  // Cálculo das notas (escala de 0 a 100)
+  const score = (hits * 2.5).toFixed(1);
+  const percent = ((hits / 40) * 100).toFixed(0);
+
+  document.getElementById("final-score").innerText = `${score} / 100`;
+  document.getElementById("final-hits").innerText = `${hits} / 40`;
+  document.getElementById("final-percent").innerText = `${percent}%`;
+
+  document.getElementById("quiz-container").style.display = "none";
+  document.getElementById("results-container").style.display = "block";
+
+  // Renderização do Gráfico de Desempenho por Bloco
+  const ctx = document.getElementById('performanceChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Português (10)', 'Matemática (10)', 'Específicos (10)', 'Legislação (10)'],
+      datasets: [{
+        label: 'Acertos',
+        data: [
+          discHits["Língua Portuguesa"],
+          discHits["Matemática Aplicada"],
+          discHits["Conhecimentos Específicos"],
+          discHits["Legislação de Santos"]
+        ],
+        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 10,
+          ticks: { stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        title: { display: true, text: 'Acertos por Disciplina (Total de 10 por bloco)' }
+      }
+    }
+  });
+
+  // Mover o bloco de revisão comentada para o container de resultados
+  document.getElementById("review-list").appendChild(listContainer);
+}
+</script>
+</body>
+</html>
